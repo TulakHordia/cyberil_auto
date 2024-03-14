@@ -1,4 +1,4 @@
-# Outlook Email Exporter
+# Outlook 365 Email Exporter
 
 This Python script extracts emails from a specified Outlook folder and exports them to keyword-specific folders based on the content of the emails. It utilizes the `win32com.client` library to interact with Outlook.
 
