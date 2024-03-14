@@ -1,11 +1,35 @@
 import os
 import win32com.client
+import imaplib2
+import email
+
+# IMAP Connection function
+def connect_to_email_server(username, password):
+    mail = imaplib2.IMAP4_SSL('outlook.office365.com')
+    mail.login(username, password)
+    return mail
+
+# Extract emails from the cyber_il folder into an emails list, data[0] contains the metadata
+# data[0][1] contains the email content itself
+def get_emails(mail_instance, cyberil_folder):
+    mail_instance.select(cyberil_folder)
+    result, data = mail_instance.search(None, 'ALL')
+    email_ids = data[0].split()
+
+    emails = []
+    for email_id in email_ids:
+        result, data = mail_instance.fetch(email_id, '(RFC822)')
+        raw_email = data[0][1]
+        email_message = email.message_from_bytes(raw_email)
+        emails.append(email_message)
+
+    return emails
 
 
-def export_emails_to_keyword_folders(folder, output_folder):
+def export_emails_to_keyword_folders(emails, output_folder):
     counter = 1
-    for message in folder.Items:
-        body = message.Body.lower()
+    for message in emails:
+        body = message.get_payload().lower() # Retrieves the content of the current email
         if "ip" in body:
             save_email_no_filter(output_folder, 'ip', message, counter)
             # save_email_and_filter(output_folder, 'ip', message)
@@ -115,9 +139,16 @@ def write_whole_email_to_txt(file, message):
 
 
 if __name__ == "__main__":
-    outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
-    cyberil_folder = outlook.Folders[1].Folders['cyberil']
+    # Connection info
+    username = "monitor@itcare.co.il"
+    password = ""
+    mail = connect_to_email_server(username, password)
+
+    cyberil_folder = "cyberil"
+    # outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
+    # cyberil_folder = outlook.Folders[1].Folders['cyberil']
     output_folder = r'C:\Users\Benjamin\Desktop\Work\Test'
-    export_emails_to_keyword_folders(cyberil_folder, output_folder)
+    emails = get_emails(mail, cyberil_folder)
+    export_emails_to_keyword_folders(emails, output_folder)
     print("Exported emails to respective keyword folders.")
 
