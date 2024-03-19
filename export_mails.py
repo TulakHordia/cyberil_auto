@@ -12,16 +12,26 @@ def export_emails_to_keyword_folders(folder, output_folder):
     pattern_md5 = r'\bmd5\b'
     pattern_sha256 = r'\bsha256\b'
     pattern_sha1 = r'\bsha1\b'
-    pattern_domain_phishing = r'\b#Phishing\b'
+    pattern_phishing = r'\bphishing\b'
+    
     for message in folder.Items:
         if message.UnRead:
             body = message.Body.lower()  # Retrieves the content of the current email
-            if re.search(pattern_ip, body):
-                save_email_no_filter(output_folder, 'ip', message, counter)
-                save_ip_tag(message)
-            elif re.search(pattern_domain and pattern_domain_phishing, body):
+            if (re.search(pattern_ip, body) and re.search(pattern_phishing, body)):
+                print("Found an ip phishing pattern")
+                save_email_no_filter(output_folder, 'ip_phishing', message, counter)
+                save_ip_phishing_tag(message)
+            elif (re.search(pattern_domain, body) and re.search(pattern_phishing, body)):
+                print("Found a domain phishing pattern")
                 save_email_no_filter(output_folder, 'domain_phishing', message, counter)
                 save_domain_phishing_tag(message)
+            elif (re.search(pattern_url, body) and re.search(pattern_phishing, body)):
+                print("Found a url phishing pattern")
+                save_email_no_filter(output_folder, 'url_phishing', message, counter)
+                save_url_phishing_tag(message)
+            elif re.search(pattern_ip, body):
+                save_email_no_filter(output_folder, 'ip', message, counter)
+                save_ip_tag(message)
             elif re.search(pattern_domain, body):
                 save_email_no_filter(output_folder, 'domain', message, counter)
                 save_domain_tag(message)
@@ -99,6 +109,31 @@ def save_domain_phishing_tag(message):
         os.makedirs(txt_files_folder)
 
     filename = f'feedlistdomainPhishing.txt'  # Where to save the Domains
+    filepath = os.path.join(txt_files_folder, filename)
+
+    with open(filepath, 'a', encoding='utf-8') as export_file:
+        append_subject_to_file(export_file, message)
+
+
+def save_url_phishing_tag(message):
+    txt_files_folder = r'C:\Users\Kosta\Desktop\cyber.feed'
+
+    if not os.path.exists(txt_files_folder):
+        os.makedirs(txt_files_folder)
+
+    filename = f'feedlisturlPhishing.txt'  # Where to save the Domains
+    filepath = os.path.join(txt_files_folder, filename)
+
+    with open(filepath, 'a', encoding='utf-8') as export_file:
+        append_subject_to_file(export_file, message)
+
+def save_ip_phishing_tag(message):
+    txt_files_folder = r'C:\Users\Kosta\Desktop\cyber.feed'
+
+    if not os.path.exists(txt_files_folder):
+        os.makedirs(txt_files_folder)
+
+    filename = f'feedlistipPhishing.txt'  # Where to save the Domains
     filepath = os.path.join(txt_files_folder, filename)
 
     with open(filepath, 'a', encoding='utf-8') as export_file:
